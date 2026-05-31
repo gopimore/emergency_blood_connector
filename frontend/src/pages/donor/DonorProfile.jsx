@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { BLOOD_GROUPS } from '../../constants';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../context/ToastContext';
 import { Alert, Button, Input, Label, PageHeader, Select } from '../../components/ui';
 
 export default function DonorProfile() {
@@ -11,6 +12,7 @@ export default function DonorProfile() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { success, error: toastError } = useToast();
 
   useEffect(() => {
     api.get('/donors/profile').then((res) => {
@@ -22,15 +24,31 @@ export default function DonorProfile() {
   }, []);
 
   const toggleAvailability = async () => {
-    const res = await api.patch('/donors/availability');
-    setProfile(res.data.profile);
-    setMessage(`Availability: ${res.data.profile.isAvailable ? 'ON' : 'OFF'}`);
+    try {
+      const res = await api.patch('/donors/availability');
+      setProfile(res.data.profile);
+      const status = res.data.profile.isAvailable ? 'ON' : 'OFF';
+      setMessage(`Availability: ${status}`);
+      success('Availability updated', `Your availability is now ${status}.`);
+    } catch (err) {
+      const message = err?.message || 'Unable to update availability';
+      setError(message);
+      toastError('Availability failed', message);
+    }
   };
 
   const useMyLocation = () => {
-    navigator.geolocation?.getCurrentPosition((pos) => {
-      setForm((f) => ({ ...f, longitude: pos.coords.longitude, latitude: pos.coords.latitude }));
-    }, () => setError('Could not get location'));
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        setForm((f) => ({ ...f, longitude: pos.coords.longitude, latitude: pos.coords.latitude }));
+        success('Location loaded', 'Your current coordinates were filled in.');
+      },
+      () => {
+        const message = 'Could not get location';
+        setError(message);
+        toastError('Location failed', message);
+      }
+    );
   };
 
   const handleSave = async (e) => {
@@ -49,8 +67,11 @@ export default function DonorProfile() {
       const res = await api.patch('/donors/profile', body);
       setProfile(res.data.profile);
       setMessage('Profile saved');
+      success('Profile saved', 'Your donor profile was updated successfully.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to save profile';
+      setError(message);
+      toastError('Save failed', message);
     } finally {
       setSaving(false);
     }

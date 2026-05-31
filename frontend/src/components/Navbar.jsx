@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useToast } from '../context/ToastContext';
 import { Button } from './ui';
 import { cn } from '../lib/cn';
 
@@ -27,6 +28,7 @@ const adminLinks = [
 export default function Navbar() {
   const { user, logout, needsProfileSetup } = useAuth();
   const { liveNotifications } = useSocket();
+  const { success, error } = useToast();
   const navigate = useNavigate();
 
   const links = needsProfileSetup
@@ -38,8 +40,13 @@ export default function Navbar() {
         : adminLinks;
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+    try {
+      await logout();
+      success('Logged out', 'You have been signed out successfully.');
+      navigate('/login');
+    } catch (err) {
+      error('Logout failed', err?.message || 'Unable to sign out.');
+    }
   };
 
   const linkClass = ({ isActive }) =>

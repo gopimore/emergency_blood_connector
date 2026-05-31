@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../context/ToastContext';
 import { Alert, Badge, Button, PageHeader } from '../../components/ui';
 
 export default function AdminUsers() {
@@ -8,6 +9,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionId, setActionId] = useState(null);
+  const { success, error: toastError } = useToast();
 
   const load = () => api.get('/admin/users?limit=50').then((res) => setUsers(res.data.users));
 
@@ -26,8 +28,11 @@ export default function AdminUsers() {
         await api.delete(`/admin/users/${id}`);
       }
       await load();
+      success('User updated', action === 'ban' ? 'User has been banned.' : action === 'unban' ? 'User has been unbanned.' : 'User deleted.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to complete user action';
+      setError(message);
+      toastError('Action failed', message);
     } finally {
       setActionId(null);
     }

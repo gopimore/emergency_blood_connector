@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { useToast } from '../context/ToastContext';
 import { Alert, Button, Input, Label } from '../components/ui';
 
 export default function ForgotPassword() {
@@ -8,6 +9,7 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { success, error: toastError } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,8 +19,11 @@ export default function ForgotPassword() {
     try {
       const res = await api.post('/auth/forgot-password', { email });
       setMessage(res.message);
+      success('Reset email sent', res.message || 'Check your inbox for a reset link.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to send reset email';
+      setError(message);
+      toastError('Forgot password failed', message);
     } finally {
       setLoading(false);
     }

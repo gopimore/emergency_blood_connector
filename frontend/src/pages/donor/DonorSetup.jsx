@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { BLOOD_GROUPS } from '../../constants';
 import { Alert, Button, Label, Select } from '../../components/ui';
 
 export default function DonorSetup() {
   const { refreshUser } = useAuth();
+  const { success, error: toastError } = useToast();
   const navigate = useNavigate();
   const [bloodGroup, setBloodGroup] = useState('O+');
   const [error, setError] = useState('');
@@ -19,9 +21,12 @@ export default function DonorSetup() {
     try {
       await api.post('/donors/setup', { bloodGroup });
       await refreshUser();
+      success('Setup complete', 'Your donor profile is ready.');
       navigate('/donor');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to complete setup';
+      setError(message);
+      toastError('Setup failed', message);
     } finally {
       setLoading(false);
     }

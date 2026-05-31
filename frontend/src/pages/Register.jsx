@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { BLOOD_GROUPS } from '../constants';
 import { Alert, Button, Input, Label, Select } from '../components/ui';
 import { cn } from '../lib/cn';
 
 export default function Register() {
   const { register } = useAuth();
+  const { success, error: toastError } = useToast();
   const navigate = useNavigate();
   const [role, setRole] = useState('donor');
   const [form, setForm] = useState({
@@ -31,18 +33,19 @@ export default function Register() {
         payload.contactPhone = form.contactPhone;
       }
       const user = await register(payload);
+      success('Created account', 'You are now signed in.');
       if (user.role === 'donor') {
         navigate('/donor');
       } else {
         navigate(`/${user.role}`);
       }
     } catch (err) {
-      const msg = err.message || 'Registration failed';
-      setError(
-        msg.includes('already in use')
-          ? `${msg} — try signing in instead; you may need to complete donor setup.`
-          : msg
-      );
+      const msg = err?.message || 'Registration failed';
+      const userMessage = msg.includes('already in use')
+        ? `${msg} — try signing in instead; you may need to complete donor setup.`
+        : msg;
+      setError(userMessage);
+      toastError('Registration failed', userMessage);
     } finally {
       setLoading(false);
     }

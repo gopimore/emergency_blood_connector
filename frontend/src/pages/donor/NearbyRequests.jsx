@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../context/ToastContext';
 import { Alert, Badge, Button, Card, EmptyState, PageHeader } from '../../components/ui';
 import { cn } from '../../lib/cn';
 
@@ -15,6 +16,7 @@ export default function NearbyRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [responding, setResponding] = useState(null);
+  const { success, error: toastError } = useToast();
 
   const loadRequests = async (lng, lat) => {
     const res = await api.get(`/blood-requests/nearby?longitude=${lng}&latitude=${lat}&limit=20`);
@@ -37,7 +39,12 @@ export default function NearbyRequests() {
               await loadRequests(pos.coords.longitude, pos.coords.latitude);
               setLoading(false);
             },
-            () => { setError('Set your location in Profile'); setLoading(false); }
+            () => {
+          const message = 'Set your location in Profile';
+          setError(message);
+          toastError('Location required', message);
+          setLoading(false);
+        }
           );
           return;
         } else setError('Set your location in Profile');
@@ -56,8 +63,11 @@ export default function NearbyRequests() {
     try {
       await api.patch(`/blood-requests/${id}/respond`);
       if (coords) await loadRequests(coords.lng, coords.lat);
+      success('Response sent', 'The hospital was notified that you can donate.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to respond';
+      setError(message);
+      toastError('Response failed', message);
     } finally {
       setResponding(null);
     }

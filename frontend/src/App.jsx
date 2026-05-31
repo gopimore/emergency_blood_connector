@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -37,9 +38,10 @@ function PublicOnly({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <SocketProvider>
-          <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
             <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
@@ -75,6 +77,7 @@ export default function App() {
           </Routes>
         </SocketProvider>
       </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

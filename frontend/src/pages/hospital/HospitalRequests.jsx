@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../context/ToastContext';
 import { Alert, Badge, Button, Card, EmptyState, PageHeader } from '../../components/ui';
 import { cn } from '../../lib/cn';
 
@@ -9,6 +10,7 @@ export default function HospitalRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(null);
+  const { success, error: toastError } = useToast();
 
   const load = () => api.get('/hospitals/requests?limit=50').then((res) => setRequests(res.data.requests));
 
@@ -22,8 +24,11 @@ export default function HospitalRequests() {
     try {
       await api.patch(`/blood-requests/${id}/status`, { status });
       await load();
+      success('Request updated', status === 'fulfilled' ? 'Request marked fulfilled.' : 'Request cancelled.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to update request';
+      setError(message);
+      toastError('Update failed', message);
     } finally {
       setUpdating(null);
     }

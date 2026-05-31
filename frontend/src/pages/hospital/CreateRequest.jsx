@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 import { BLOOD_GROUPS, URGENCY_LEVELS } from '../../constants';
 import { Alert, Button, Input, Label, PageHeader, Select } from '../../components/ui';
 
 export default function CreateRequest() {
   const navigate = useNavigate();
+  const { success, error: toastError } = useToast();
   const [form, setForm] = useState({ bloodGroup: 'O+', unitsRequired: 1, urgency: 'medium', longitude: '', latitude: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,9 +29,12 @@ export default function CreateRequest() {
         urgency: form.urgency,
         location: { coordinates: [Number(form.longitude), Number(form.latitude)] },
       });
+      success('Request created', 'Hospital request was posted and donors have been notified.');
       navigate('/hospital/requests');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to create request';
+      setError(message);
+      toastError('Create failed', message);
     } finally {
       setLoading(false);
     }

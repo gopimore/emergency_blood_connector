@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../context/ToastContext';
 import { Alert, Button, Input, Label, PageHeader } from '../../components/ui';
 
 export default function HospitalProfile() {
@@ -12,6 +13,7 @@ export default function HospitalProfile() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { success, error: toastError } = useToast();
 
   useEffect(() => {
     api.get('/hospitals/profile').then((res) => {
@@ -26,9 +28,16 @@ export default function HospitalProfile() {
   }, []);
 
   const useMyLocation = () => {
-    navigator.geolocation?.getCurrentPosition((pos) => {
-      setForm((f) => ({ ...f, longitude: pos.coords.longitude, latitude: pos.coords.latitude }));
-    });
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        setForm((f) => ({ ...f, longitude: pos.coords.longitude, latitude: pos.coords.latitude }));
+      },
+      () => {
+        const message = 'Could not get location';
+        setError(message);
+        toastError('Location failed', message);
+      }
+    );
   };
 
   const handleSave = async (e) => {
@@ -46,8 +55,11 @@ export default function HospitalProfile() {
       }
       await api.patch('/hospitals/profile', body);
       setMessage('Profile saved');
+      success('Profile saved', 'Hospital profile updated.');
     } catch (err) {
-      setError(err.message);
+      const message = err?.message || 'Unable to save profile';
+      setError(message);
+      toastError('Save failed', message);
     } finally {
       setSaving(false);
     }
