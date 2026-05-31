@@ -8,6 +8,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import rateLimit from 'express-rate-limit';
 
+import logger from './src/config/logger.js';
 import authRoutes from './src/modules/auth/auth.routes.js';
 import donorRoutes from './src/modules/donor/donor.routes.js';
 import hospitalRoutes from './src/modules/hospital/hospital.routes.js';
@@ -29,7 +30,10 @@ app.use(
   })
 );
 
-const corsOrigin = process.env.CLIENT_URL || 'http://localhost:3000';
+const corsOrigin = process.env.CLIENT_URL || (process.env.NODE_ENV === 'production'
+  ? 'https://emergencybloodconnector-six.vercel.app'
+  : 'http://localhost:3000');
+logger.info(`CORS origin set to: ${corsOrigin}`);
 app.use(
   cors({
     origin: corsOrigin,
