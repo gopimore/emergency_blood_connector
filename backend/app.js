@@ -56,6 +56,10 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(xss());
 
+app.get('/', (req, res) => {
+  res.status(200).json({ success: true, message: 'Backend API is running', data: null });
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'API is running', data: null });
 });
