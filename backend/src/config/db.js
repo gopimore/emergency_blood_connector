@@ -21,7 +21,17 @@ const logOrphanAccounts = async () => {
 };
 
 const connectDB = async () => {
-  const conn = await mongoose.connect(process.env.MONGO_URI);
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    throw new Error('MONGO_URI environment variable is not defined');
+  }
+
+  logger.info(`Connecting to MongoDB Atlas, MONGO_URI present: ${Boolean(mongoUri)}`);
+  const conn = await mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    family: 4,
+  });
   logger.info(`MongoDB connected: ${conn.connection.host}`);
 
   const cleanups = await Promise.all([

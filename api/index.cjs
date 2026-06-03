@@ -5,6 +5,12 @@ let connectingPromise;
 
 module.exports = async function handler(req, res) {
   try {
+    if (!appInstance) {
+      console.log('Vercel serverless adapter initializing');
+      console.log('MONGO_URI present:', Boolean(process.env.MONGO_URI));
+      console.log('NODE_ENV:', process.env.NODE_ENV);
+    }
+
     const { default: app } = await import('../backend/app.js');
     appInstance = app;
 
