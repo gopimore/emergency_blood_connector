@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
+import dns from 'dns';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import http from 'http';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
+
+dns.setServers(['8.8.8.8', '1.1.1.1', '9.9.9.9']);
 import { Server } from 'socket.io';
 import app from './app.js';
 import connectDB from './src/config/db.js';

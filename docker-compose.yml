@@ -7,6 +7,9 @@ services:
     volumes:
       - ebc_mongo_data:/data/db
     restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
 
 volumes:
   ebc_mongo_data:
