@@ -1,34 +1,49 @@
 // Serverless adapter for Vercel: forwards requests to the Express `app` exported by backend/app.js
 let appInstance;
 let dbConnected = false;
+let connectingPromise;
 
 module.exports = async function handler(req, res) {
   try {
     const { default: app } = await import('../backend/app.js');
     appInstance = app;
 
-    // Connect to database only once
-    if (!dbConnected) {
+    // Connect to database only once (with promise to avoid race conditions)
+    if (!dbConnected && !connectingPromise) {
+      connectingPromise = (async () => {
+        try {
+          const dns = require('dns');
+          dns.setServers(['8.8.8.8', '1.1.1.1', '9.9.9.9']);
+          
+          const connectDB = (await import('../backend/src/config/db.js')).default;
+          await Promise.race([
+            connectDB(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('DB connection timeout')), 8000))
+          ]);
+          dbConnected = true;
+          console.log('✓ Database connected on Vercel');
+        } catch (dbErr) {
+          console.error('✗ Database connection error:', dbErr.message);
+          dbConnected = false;
+          throw dbErr;
+        }
+      })();
+
       try {
-        const dns = require('dns');
-        dns.setServers(['8.8.8.8', '1.1.1.1', '9.9.9.9']);
-        
-        const connectDB = (await import('../backend/src/config/db.js')).default;
-        await connectDB();
-        dbConnected = true;
-        console.log('Database connected on Vercel');
-      } catch (dbErr) {
-        console.error('Database connection error:', dbErr);
-        // Continue anyway - might be a transient error
+        await connectingPromise;
+      } catch (err) {
+        connectingPromise = null;
+        throw err;
       }
+    } else if (connectingPromise) {
+      await connectingPromise;
     }
 
     // Express apps are callable as functions (req, res)
     return app(req, res);
   } catch (err) {
-    // Basic error handling to surface import failures in Vercel logs
     console.error('Serverless adapter error:', err);
     res.statusCode = 500;
-    res.end('Server error');
+    res.json({ success: false, message: 'Server error: ' + err.message });
   }
 };
