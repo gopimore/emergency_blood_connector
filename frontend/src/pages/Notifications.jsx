@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import { useSocket } from '../context/SocketContext';
+import { useSocket } from '../context/useSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Alert, Badge, Button, Card, EmptyState, PageHeader } from '../components/ui';
 

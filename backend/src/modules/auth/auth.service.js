@@ -22,13 +22,20 @@ const signRefreshToken = (userId) =>
 const hashToken = (token) =>
   crypto.createHash('sha256').update(token).digest('hex');
 
-const cookieOptions = {
+const isSecureCookieEnvironment = () =>
+  process.env.NODE_ENV === 'production' ||
+  process.env.VERCEL === '1' ||
+  process.env.VERCEL_ENV === 'production' ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
+
+const getCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-};
+  secure: isSecureCookieEnvironment(),
+  sameSite: isSecureCookieEnvironment() ? 'none' : 'lax',
+});
 
 export const setAuthCookies = (res, accessToken, refreshToken) => {
+  const cookieOptions = getCookieOptions();
   res.cookie('accessToken', accessToken, {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000,
@@ -40,6 +47,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 export const clearAuthCookies = (res) => {
+  const cookieOptions = getCookieOptions();
   res.clearCookie('accessToken', cookieOptions);
   res.clearCookie('refreshToken', cookieOptions);
 };

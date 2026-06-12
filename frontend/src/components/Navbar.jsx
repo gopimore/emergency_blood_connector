@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext';
+import { useSocket } from '../context/useSocket';
 import { useToast } from '../context/ToastContext';
 import { Button } from './ui';
 import { cn } from '../lib/cn';
