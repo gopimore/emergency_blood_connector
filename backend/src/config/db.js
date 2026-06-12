@@ -31,6 +31,9 @@ const connectDB = async () => {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
     family: 4,
+    tls: true,
+    retryWrites: true,
+    w: 'majority',
   });
   logger.info(`MongoDB connected: ${conn.connection.host}`);
 
