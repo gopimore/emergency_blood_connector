@@ -9,13 +9,33 @@ export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
 
+  const socketUrl = useMemo(() => {
+    const configuredUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_BASE;
+    if (configuredUrl) {
+      if (/^https?:\/\//i.test(configuredUrl)) {
+        return configuredUrl.replace(/\/api\/v1\/?$/i, '').replace(/\/api\/?$/i, '');
+      }
+    }
+
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return 'https://emergencybloodconnectorbackend.vercel.app';
+    }
+
+    return null;
+  }, []);
+
   useEffect(() => {
     if (!user) {
       setSocket(null);
       return undefined;
     }
 
-    const s = io({
+    if (!socketUrl) {
+      setSocket(null);
+      return undefined;
+    }
+
+    const s = io(socketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
     });

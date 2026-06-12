@@ -1,4 +1,15 @@
-const API_BASE = import.meta.env.VITE_API_BASE || '/api/v1';
+const getApiBase = () => {
+  const configuredBase = import.meta.env.VITE_API_BASE;
+  if (configuredBase) return configuredBase;
+
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://emergencybloodconnectorbackend.vercel.app/api/v1';
+  }
+
+  return '/api/v1';
+};
+
+const API_BASE = getApiBase();
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
