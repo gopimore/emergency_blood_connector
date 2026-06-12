@@ -17,6 +17,7 @@ import bloodRequestRoutes from './src/modules/blood-request/bloodRequest.routes.
 import notificationRoutes from './src/modules/notification/notification.routes.js';
 import adminRoutes from './src/modules/admin/admin.routes.js';
 import { globalErrorHandler, notFound } from './src/middleware/error.middleware.js';
+import { seedAdminIfNeeded } from './src/modules/admin/admin.service.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, '../frontend/dist');
@@ -34,6 +35,7 @@ const ensureDatabaseConnection = async (req, res, next) => {
 
   try {
     await dbBootstrapPromise;
+    await seedAdminIfNeeded();
     next();
   } catch (err) {
     next(err);

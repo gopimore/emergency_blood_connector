@@ -85,16 +85,17 @@ export const getStats = async () => {
 };
 
 export const seedAdminIfNeeded = async () => {
-  const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = process.env;
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) return;
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || '123456789';
+  const adminName = process.env.ADMIN_NAME || 'System Admin';
 
-  const existing = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() });
+  const existing = await User.findOne({ email: adminEmail.toLowerCase() });
   if (existing) return;
 
   await User.create({
-    name: ADMIN_NAME || 'System Admin',
-    email: ADMIN_EMAIL.toLowerCase(),
-    passwordHash: ADMIN_PASSWORD,
+    name: adminName,
+    email: adminEmail.toLowerCase(),
+    passwordHash: adminPassword,
     role: 'admin',
     isEmailVerified: true,
   });
