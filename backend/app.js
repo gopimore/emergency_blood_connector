@@ -9,6 +9,7 @@ import xss from 'xss-clean';
 import rateLimit from 'express-rate-limit';
 
 import logger from './src/config/logger.js';
+import connectDB from './src/config/db.js';
 import authRoutes from './src/modules/auth/auth.routes.js';
 import donorRoutes from './src/modules/donor/donor.routes.js';
 import hospitalRoutes from './src/modules/hospital/hospital.routes.js';
@@ -21,6 +22,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, '../frontend/dist');
 
 const app = express();
+let dbBootstrapPromise;
+
+const ensureDatabaseConnection = async (req, res, next) => {
+  if (!dbBootstrapPromise) {
+    dbBootstrapPromise = connectDB().catch((err) => {
+      dbBootstrapPromise = null;
+      throw err;
+    });
+  }
+
+  try {
+    await dbBootstrapPromise;
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
 
 app.set('trust proxy', 1);
 
@@ -64,6 +82,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'API is running', data: null });
 });
 
+app.use('/api', ensureDatabaseConnection);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/donors', donorRoutes);
 app.use('/api/v1/hospitals', hospitalRoutes);
