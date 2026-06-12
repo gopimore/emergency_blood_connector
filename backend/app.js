@@ -84,6 +84,26 @@ app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'API is running', data: null });
 });
 
+app.get('/favicon.ico', (req, res) => {
+  res.type('image/svg+xml').send(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="12" fill="#b91c1c"/>
+      <path d="M20 20h24v24H20z" fill="#fff"/>
+      <path d="M26 26h12v12H26z" fill="#b91c1c"/>
+    </svg>
+  `);
+});
+
+app.get('/favicon.png', (req, res) => {
+  res.type('image/svg+xml').send(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="12" fill="#b91c1c"/>
+      <path d="M20 20h24v24H20z" fill="#fff"/>
+      <path d="M26 26h12v12H26z" fill="#b91c1c"/>
+    </svg>
+  `);
+});
+
 app.use('/api', ensureDatabaseConnection);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/donors', donorRoutes);
